@@ -9,6 +9,9 @@ on:
 jobs:
   test-and-lint:
     runs-on: ubuntu-latest
+    env:
+      UV_NO_CACHE_PRUNING: "true"
+      
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
