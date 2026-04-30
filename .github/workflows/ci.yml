@@ -1,0 +1,52 @@
+name: CI Quality Gate
+
+on:
+  push:
+    branches: [ main, "feat/**" ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test-and-lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          version: latest
+          enable-cache: false
+
+      - name: Set up Python
+        run: uv python install 3.13
+
+      - name: Install dependencies
+        run: uv sync
+
+      - name: Run Ruff Check
+        run: uv run ruff check
+
+      - name: Run Ruff Format Check
+        run: uv run ruff format --check
+
+      - name: Run Mypy
+        run: uv run mypy .
+
+      - name: API Smoke Test
+        run: |
+          # Start the server in the background
+          uv run uvicorn main:app --host 127.0.0.1 --port 8000 &
+          
+          # Wait for the server to be ready (max 10 seconds)
+          timeout 10s bash -c 'until curl -s http://127.0.0.1:8000/health; do sleep 1; done'
+          
+          # Verify the response
+          RESPONSE=$(curl -s http://127.0.0.1:8000/health)
+          if [[ "$RESPONSE" == *"Running healthy"* ]]; then
+            echo "Smoke test passed!"
+          else
+            echo "Smoke test failed: $RESPONSE"
+            exit 1
+          fi

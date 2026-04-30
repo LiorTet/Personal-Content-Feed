@@ -1,0 +1,27 @@
+[project]
+name = "personal-content-feed"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "fastapi>=0.136.1",
+    "pydantic>=2.13.3",
+    "uvicorn>=0.46.0",
+]
+
+[dependency-groups]
+dev = [
+    "mypy>=1.20.2",
+    "pre-commit>=4.6.0",
+    "ruff>=0.15.12",
+]
+
+[tool.ruff]
+line-length = 88
+select = ["E", "F", "I"] # Error, Pyflakes, and Isort
+
+[tool.mypy]
+python_version = "3.13"
+strict = true
+ignore_missing_imports = true
