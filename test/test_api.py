@@ -1,3 +1,5 @@
+import json
+
 import pytest
 from httpx import ASGITransport, AsyncClient
 from pydantic_ai.models.test import TestModel
@@ -6,24 +8,30 @@ from agent.scout import scout_agent
 from main import app
 
 
-@pytest.mark.asyncio  # type: ignore[misc]
+@pytest.mark.asyncio
 async def test_scout_endpoint_schema() -> None:
-    # 1. Mock the agent so we don't hit the real LLM in CI
-    with scout_agent.override(model=TestModel()):
+    mock_data = {
+        "findings": ["Test finding 1", "Test finding 2"],
+        "scout_summary": "This is a successful mock summary.",
+    }
+
+    with scout_agent.override(model=TestModel(seed_response=json.dumps(mock_data))):
         async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
-            # 2. Call the endpoint
+            # 3. Call the endpoint
             response = await ac.get("/scout", params={"query": "Test query"})
 
-            # 3. Assertions
+            # 4. Assertions
             assert response.status_code == 200
             data = response.json()
 
-            # Verify the contract keys exist
+            # Verify the top-level contract keys exist
             assert "agent_response" in data
             assert "latency_breakdown" in data
             assert "ai_inference_sec" in data["latency_breakdown"]
 
-            # Verify the agent_response follows our ScoutResponse schema
+            # Verify the agent_response follows our expected structure
             agent_out = data["agent_response"]
             assert isinstance(agent_out["findings"], list)
+            assert len(agent_out["findings"]) > 0
             assert "scout_summary" in agent_out
+            assert agent_out["scout_summary"] == "This is a successful mock summary."
