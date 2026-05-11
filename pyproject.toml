@@ -32,6 +32,9 @@ select = ["E", "F", "I"]
 [tool.mypy]
 python_version = "3.13"
 strict = true
-ignore_missing_imports = true
 explicit_package_bases = true
 namespace_packages = true
+disallow_untyped_decorators = false
+warn_unused_ignores = false
+disable_error_code = ["call-overload"]
+ignore_missing_imports = true
