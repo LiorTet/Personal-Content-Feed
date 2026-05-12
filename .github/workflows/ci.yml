@@ -9,6 +9,11 @@ on:
 jobs:
   test-and-lint:
     runs-on: ubuntu-latest
+    
+    env:
+      MISTRAL_API_KEY: "mock-key-for-testing"
+      ENV: "ci"
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -25,28 +30,35 @@ jobs:
       - name: Install dependencies
         run: uv sync
 
-      - name: Run Ruff Check
+      - name: Run Ruff Check (Linting)
         run: uv run ruff check
 
       - name: Run Ruff Format Check
         run: uv run ruff format --check
 
-      - name: Run Mypy
+      - name: Run Mypy (Type Safety)
         run: uv run mypy .
 
-      - name: API Smoke Test
+      - name: Run Pytest (Logic & Schema Validation)
+        run: uv run pytest
+
+      - name: API Smoke Test (E2E)
         run: |
-          # Start the server in the background
-          uv run uvicorn main:app --host 127.0.0.1 --port 8000 &
+          uv run uvicorn main:app --host 127.0.0.1 --port 8000 --no-access-log &
           
-          # Wait for the server to be ready (max 10 seconds)
-          timeout 10s bash -c 'until curl -s http://127.0.0.1:8000/health; do sleep 1; done'
+          timeout 15s bash -c 'until curl -s http://127.0.0.1:8000/health; do sleep 1; done'
           
-          # Verify the response
+          # Verify the response using your standard healthy check
           RESPONSE=$(curl -s http://127.0.0.1:8000/health)
           if [[ "$RESPONSE" == *"Running healthy"* ]]; then
             echo "Smoke test passed!"
           else
             echo "Smoke test failed: $RESPONSE"
             exit 1
+          fi
+          
+          SCOUT_STATUS=$(curl -o /dev/null -s -w "%{http_code}" http://127.0.0.1:8000/scout)
+          if [ "$SCOUT_STATUS" -eq 500 ]; then
+             echo "Scout endpoint is throwing 500!"
+             exit 1
           fi
