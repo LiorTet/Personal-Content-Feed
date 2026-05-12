@@ -45,7 +45,7 @@ async def version() -> dict[str, str]:
 @app.get("/scout")
 async def run_scout(query: str) -> dict[str, Any]:
     with TrackInference() as timer:
-        result = await scout_agent.run(query, model_settings={"tool_choice": "search_internet"})
+        result = await scout_agent.run(query, model_settings={"tool_choice": "search_web"})
 
     return {
         "agent_response": result.output,

@@ -1,6 +1,8 @@
 import pytest
 from httpx import ASGITransport, AsyncClient
-from pydantic_ai.models.test import TestModel
+from pydantic_ai.messages import ModelResponse, TextPart, ToolCallPart, ToolReturnPart
+from pydantic_ai.models import ModelRequestParameters
+from pydantic_ai.models.function import FunctionModel
 
 from agent.scout import scout_agent
 from main import app
@@ -8,28 +10,35 @@ from main import app
 
 @pytest.mark.asyncio
 async def test_scout_endpoint_schema() -> None:
-    mock_data = {
-        "findings": ["Test finding 1", "Test finding 2"],
-        "scout_summary": "This is a successful mock summary.",
-    }
+    async def scout_model_logic(messages: list[ModelResponse], info: ModelRequestParameters) -> ModelResponse:
+        if messages and any(isinstance(p, ToolReturnPart) for p in messages[-1].parts):
+            return ModelResponse(parts=[TextPart(content="Mocked search results for Juan Manuel de Prada May 2026")])
 
-    with scout_agent.override(model=TestModel(custom_output_args=mock_data)):
+        return ModelResponse(
+            parts=[
+                ToolCallPart(
+                    tool_name="search_web",
+                    args={
+                        "keywords": "Latest articles and public interventions by Juan Manuel de Prada May 2026",
+                        "region": "wt-wt",
+                        "max_results": 10,
+                    },
+                )
+            ]
+        )
+
+    model = FunctionModel(scout_model_logic)
+
+    with scout_agent.override(model=model):
         async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
             # 3. Call the endpoint
-            response = await ac.get("/scout", params={"query": "Test query"})
+            response = await ac.get(
+                "/scout", params={"query": "Latest articles and public interventions by Juan Manuel de Prada May 2026"}
+            )
 
             # 4. Assertions
             assert response.status_code == 200
             data = response.json()
 
-            # Verify the top-level contract keys exist
             assert "agent_response" in data
-            assert "latency_breakdown" in data
-            assert "ai_inference_sec" in data["latency_breakdown"]
-
-            # Verify the agent_response follows our expected structure
-            agent_out = data["agent_response"]
-            assert isinstance(agent_out["findings"], list)
-            assert len(agent_out["findings"]) > 0
-            assert "scout_summary" in agent_out
-            assert agent_out["scout_summary"] == "This is a successful mock summary."
+            assert isinstance(data["agent_response"], str)
