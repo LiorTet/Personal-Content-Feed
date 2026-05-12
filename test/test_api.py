@@ -1,8 +1,7 @@
 import pytest
 from httpx import ASGITransport, AsyncClient
-from pydantic_ai.messages import ModelResponse, TextPart, ToolCallPart, ToolReturnPart
-from pydantic_ai.models import ModelRequestParameters
-from pydantic_ai.models.function import FunctionModel
+from pydantic_ai.messages import ModelMessage, ModelResponse, TextPart, ToolCallPart, ToolReturnPart
+from pydantic_ai.models.function import AgentInfo, FunctionModel
 
 from agent.scout import scout_agent
 from main import app
@@ -10,7 +9,7 @@ from main import app
 
 @pytest.mark.asyncio
 async def test_scout_endpoint_schema() -> None:
-    async def scout_model_logic(messages: list[ModelResponse], info: ModelRequestParameters) -> ModelResponse:
+    async def scout_model_logic(messages: list[ModelMessage], info: AgentInfo) -> ModelResponse:
         if messages and any(isinstance(p, ToolReturnPart) for p in messages[-1].parts):
             return ModelResponse(parts=[TextPart(content="Mocked search results for Juan Manuel de Prada May 2026")])
 
