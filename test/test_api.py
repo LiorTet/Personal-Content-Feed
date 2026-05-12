@@ -1,5 +1,3 @@
-import json
-
 import pytest
 from httpx import ASGITransport, AsyncClient
 from pydantic_ai.models.test import TestModel
@@ -15,7 +13,7 @@ async def test_scout_endpoint_schema() -> None:
         "scout_summary": "This is a successful mock summary.",
     }
 
-    with scout_agent.override(model=TestModel(custom_output_text=json.dumps(mock_data))):
+    with scout_agent.override(model=TestModel(custom_output_args=mock_data)):
         async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
             # 3. Call the endpoint
             response = await ac.get("/scout", params={"query": "Test query"})
