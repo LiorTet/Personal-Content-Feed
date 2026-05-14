@@ -1,12 +1,25 @@
 import os
+from typing import Any, List, Optional
 
 import dotenv
 from asyncddgs import aDDGS
+from pydantic import BaseModel, Field
 from pydantic_ai import Agent
 from pydantic_ai.models.mistral import MistralModel
 from pydantic_ai.providers.mistral import MistralProvider
 
+from agent.memory_state import AgentState, ScoutFinding
+
 dotenv.load_dotenv()
+
+
+class InitialState(BaseModel):
+    query: str
+    findings: List[ScoutFinding] = Field(default_factory=list)
+    iteration: int = 0
+    critic_feedback: Optional[str] = None
+    final_report: Optional[str] = None
+
 
 model = MistralModel(
     "mistral-small-latest",
@@ -46,3 +59,25 @@ async def search_web(keywords: str, region: str = "wt-wt", max_results: int = 10
             output.append(f"Title: {r['title']}\nURL: {r['href']}\nSnippet: {r['body']}")
 
         return "\n\n".join(output) if output else "No results found."
+
+
+async def scout_node(state: AgentState) -> dict[str, Any]:
+    current_query = state["query"]
+    if state.get("critic_feedback"):
+        current_query += f"\n\nAdditional Instruction from Critic: {state['critic_feedback']}"
+
+    result = await scout_agent.run(current_query)
+
+    new_findings = [
+        ScoutFinding(
+            title=f"Scout Result - Iteration {state['iteration']}",
+            url="N/A",
+            snippet=result.output,
+            source="mistral-scout",
+        )
+    ]
+
+    return {
+        "findings": new_findings,
+        "iteration": state["iteration"] + 1,
+    }

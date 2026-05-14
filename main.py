@@ -1,11 +1,13 @@
 import time
 from typing import Any, Awaitable, Callable
+from uuid import uuid4
 
 from fastapi import FastAPI
 from starlette.requests import Request
 from starlette.responses import Response
 
-from agent.scout import scout_agent
+from agent.graph import graph
+from agent.scout import InitialState
 from core.logger_format import logger
 from core.timing import TrackInference
 
@@ -43,12 +45,22 @@ async def version() -> dict[str, str]:
 
 
 @app.get("/scout")
-async def run_scout(query: str) -> dict[str, Any]:
+async def run_scout(query: str, thread_id: str | None = None) -> dict[str, Any]:
+    effective_thread_id = thread_id or str(uuid4())
+    config = {"configurable": {"thread_id": effective_thread_id}}
+
+    state_container = InitialState(query=query)
+
     with TrackInference() as timer:
-        result = await scout_agent.run(query, model_settings={"tool_choice": "search_web"})
+        result = await graph.ainvoke(state_container.model_dump(), config=config)
+
+    last_finding_text = ""
+    if result["findings"]:
+        last_finding_text = result["findings"][-1].snippet
 
     return {
-        "agent_response": result.output,
+        "agent_response": last_finding_text,
+        "thread_id": effective_thread_id,
         "latency_breakdown": {"ai_inference_sec": round(timer.duration, 4)},
     }
 
