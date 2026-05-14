@@ -41,3 +41,12 @@ async def test_scout_endpoint_schema() -> None:
 
             assert "agent_response" in data
             assert isinstance(data["agent_response"], str)
+
+            # Check Graph Metadata
+            assert "thread_id" in data
+            assert isinstance(data["thread_id"], str)
+
+            # Check Performance Metadata
+            assert "latency_breakdown" in data
+            assert "ai_inference_sec" in data["latency_breakdown"]
+            assert data["latency_breakdown"]["ai_inference_sec"] >= 0
