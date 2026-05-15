@@ -6,7 +6,13 @@ from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
 from sqlmodel import SQLModel
 
-DATABASE_URL = os.getenv("DATABASE_URL")
+from core.logger_format import logger
+
+try:
+    DATABASE_URL = os.environ["DATABASE_URL"]
+except KeyError:
+    logger.critical("DATABASE_URL environment variable is not set.")
+    raise SystemExit(1)
 engine = create_async_engine(DATABASE_URL)
 async_session = sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
 
