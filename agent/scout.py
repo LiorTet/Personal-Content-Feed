@@ -21,6 +21,12 @@ class InitialState(BaseModel):
     final_report: Optional[str] = None
 
 
+class ResearchResponse(BaseModel):
+    """Structured list of findings from the web search."""
+
+    findings: List[ScoutFinding]
+
+
 model = MistralModel(
     "mistral-small-latest",
     provider=MistralProvider(api_key=os.getenv("MISTRAL_API_KEY")),
@@ -28,11 +34,13 @@ model = MistralModel(
 
 scout_agent = Agent(
     model,
+    output_type=ResearchResponse,
     system_prompt=(
-        "You are a real-time Research Scout. "
-        "Today's date is May 4, 2026. "
-        "When you use the search_internet tool, trust the results more than your training data. "
-        "If you see news from 2025 or 2026, it is real. Summarize it accurately."
+        "You are a high-fidelity Research Scout. "
+        "When reporting findings, the 'source' field must be the NAME OF THE WEBSITE "
+        "(e.g., 'ABC.es', 'El País', 'La Linterna Azul'), NOT the search engine name. "
+        "Extract the source name from the URL or the search snippet. "
+        "Trust the specific dates found in the snippets for 2025 and 2026."
     ),
 )
 
@@ -68,14 +76,7 @@ async def scout_node(state: AgentState) -> dict[str, Any]:
 
     result = await scout_agent.run(current_query)
 
-    new_findings = [
-        ScoutFinding(
-            title=f"Scout Result - Iteration {state['iteration']}",
-            url="N/A",
-            snippet=result.output,
-            source="mistral-scout",
-        )
-    ]
+    new_findings = result.output.findings
 
     return {
         "findings": new_findings,
