@@ -21,9 +21,7 @@ class ContentArchive(SQLModel, table=True):  # type: ignore
     snippet: str
     source: str
     embedding: Any = Field(sa_column=Column(Vector(1024)))
-    created_at: datetime = Field(
-        sa_column=Column(DateTime(timezone=True), default_factory=lambda: datetime.now(timezone.utc))
-    )
+    created_at: datetime = Field(sa_column=Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)))
 
 
 async def get_embeddings_batch(texts: List[str]) -> List[List[float]]:
