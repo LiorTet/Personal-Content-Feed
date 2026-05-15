@@ -19,6 +19,10 @@ async_session = sessionmaker(engine, class_=AsyncSession, expire_on_commit=False
 
 
 async def init_db() -> None:
+    if os.getenv("ENV") == "ci":
+        logger.info("Skipping DB init in CI environment.")
+        return
+
     async with engine.begin() as conn:
         # Enable pgvector extension
         await conn.execute(text("CREATE EXTENSION IF NOT EXISTS vector;"))
