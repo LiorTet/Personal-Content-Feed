@@ -1,5 +1,6 @@
 import time
-from typing import Any, Awaitable, Callable
+from contextlib import asynccontextmanager
+from typing import Any, AsyncGenerator, Awaitable, Callable
 from uuid import uuid4
 
 from fastapi import FastAPI
@@ -10,8 +11,17 @@ from agent.graph import graph
 from agent.scout import InitialState
 from core.logger_format import logger
 from core.timing import TrackInference
+from db.database import init_db
 
-app = FastAPI()
+
+@asynccontextmanager
+async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
+    await init_db()
+    print("ArchiveNode Tables Initialized")
+    yield
+
+
+app = FastAPI(lifespan=lifespan)
 
 
 @app.get("/")

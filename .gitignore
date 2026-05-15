@@ -1,7 +1,9 @@
 # Byte-compiled / optimized / DLL files
-__pycache__/
 *.py[codz]
 *$py.class
+__pycache__/
+.venv/
+*.pyc
 
 # C extensions
 *.so
