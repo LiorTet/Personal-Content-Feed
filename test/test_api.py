@@ -34,8 +34,10 @@ async def test_scout_endpoint_schema() -> None:
 
     model = FunctionModel(scout_model_logic)
 
-    with patch("db.database.async_session"), patch("db.database.init_db", new_callable=AsyncMock), patch(
-        "agent.archive.async_session"
+    with (
+        patch("db.database.async_session"),
+        patch("db.database.init_db", new_callable=AsyncMock),
+        patch("agent.archive.async_session"),
     ):
         with scout_agent.override(model=model):
             async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
