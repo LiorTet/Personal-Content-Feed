@@ -34,10 +34,16 @@ async def test_scout_endpoint_schema() -> None:
 
     model = FunctionModel(scout_model_logic)
 
+    mock_search_results = [
+        {"title": "Result 1", "href": "http://example.com/1", "body": "Content 1"},
+        {"title": "Result 2", "href": "http://example.com/2", "body": "Content 2"},
+    ]
+
     with (
         patch("db.database.async_session"),
         patch("db.database.init_db", new_callable=AsyncMock),
         patch("agent.archive.async_session"),
+        patch("agent.scout.aDDGS.text", new_callable=AsyncMock, return_value=mock_search_results),
     ):
         with scout_agent.override(model=model):
             async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
