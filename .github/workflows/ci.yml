@@ -12,6 +12,7 @@ jobs:
     
     env:
       MISTRAL_API_KEY: "mock-key-for-testing"
+      DATABASE_URL: "postgresql+asyncpg://placeholder:5432/db"
       ENV: "ci"
 
     steps:

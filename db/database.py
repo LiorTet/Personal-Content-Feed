@@ -1,4 +1,5 @@
 import os
+import sys
 from typing import AsyncGenerator
 
 from sqlalchemy import text
@@ -28,3 +29,16 @@ async def init_db() -> None:
 async def get_session() -> AsyncGenerator[AsyncSession, None]:
     async with async_session() as session:
         yield session
+
+
+# Testing
+def get_engine_url() -> str:
+    url = os.getenv("DATABASE_URL")
+    if not url:
+        # If we are in CI or Testing, use an in-memory DB
+        if os.getenv("ENV") == "ci" or "pytest" in sys.modules:
+            return "sqlite+aiosqlite:///:memory:"
+
+        logger.critical("DATABASE_URL environment variable is not set.")
+        raise SystemExit(1)
+    return url
