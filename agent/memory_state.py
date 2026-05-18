@@ -22,3 +22,17 @@ class AgentState(TypedDict):
 
 class GraphConfig(BaseModel):
     thread_id: str = Field(..., description="Unique identifier for the persistence layer")
+
+
+class InitialState(BaseModel):
+    query: str
+    findings: List[ScoutFinding] = Field(default_factory=list)
+    iteration: int = 0
+    critic_feedback: Optional[str] = None
+    final_report: Optional[str] = None
+
+
+class ResearchResponse(BaseModel):
+    """Structured list of findings from the web search."""
+
+    findings: List[ScoutFinding]

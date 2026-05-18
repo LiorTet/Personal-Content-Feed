@@ -8,7 +8,7 @@ from starlette.requests import Request
 from starlette.responses import Response
 
 from agent.graph import graph
-from agent.scout import InitialState
+from agent.memory_state import InitialState
 from core.logger_format import logger
 from core.timing import TrackInference
 from db.database import init_db
@@ -64,12 +64,10 @@ async def run_scout(query: str, thread_id: str | None = None) -> dict[str, Any]:
     with TrackInference() as timer:
         result = await graph.ainvoke(state_container.model_dump(), config=config)
 
-    last_finding_text = ""
-    if result["findings"]:
-        last_finding_text = result["findings"][-1].snippet
+    agent_response = result.get("final_report") or "No relevant insights retrieved from memory."
 
     return {
-        "agent_response": last_finding_text,
+        "agent_response": agent_response,
         "thread_id": effective_thread_id,
         "latency_breakdown": {"ai_inference_sec": round(timer.duration, 4)},
     }
