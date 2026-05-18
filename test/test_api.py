@@ -5,7 +5,7 @@ from httpx import ASGITransport, AsyncClient
 from pydantic_ai.messages import ModelMessage, ModelResponse, TextPart, ToolCallPart, ToolReturnPart
 from pydantic_ai.models.function import AgentInfo, FunctionModel
 
-from agent.scout import scout_agent
+from agent.nodes.scout import scout_agent
 from main import app
 
 
@@ -39,11 +39,14 @@ async def test_scout_endpoint_schema() -> None:
         {"title": "Result 2", "href": "http://example.com/2", "body": "Content 2"},
     ]
 
+    mock_vectors = [[0.1, 0.2, 0.3]]
+
     with (
         patch("db.database.async_session"),
         patch("db.database.init_db", new_callable=AsyncMock),
-        patch("agent.archive.async_session"),
-        patch("agent.scout.aDDGS.text", new_callable=AsyncMock, return_value=mock_search_results),
+        patch("agent.nodes.archive.async_session"),
+        patch("agent.nodes.scout.aDDGS.text", new_callable=AsyncMock, return_value=mock_search_results),
+        patch("agent.nodes.archive.get_embeddings_batch", new_callable=AsyncMock, return_value=mock_vectors),
     ):
         with scout_agent.override(model=model):
             async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
