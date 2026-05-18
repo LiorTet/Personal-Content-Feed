@@ -47,6 +47,7 @@ async def test_scout_endpoint_schema() -> None:
         patch("agent.nodes.archive.async_session"),
         patch("agent.nodes.scout.aDDGS.text", new_callable=AsyncMock, return_value=mock_search_results),
         patch("agent.nodes.archive.get_embeddings_batch", new_callable=AsyncMock, return_value=mock_vectors),
+        patch("agent.nodes.retrieval.get_embeddings_batch", new_callable=AsyncMock, return_value=mock_vectors),
     ):
         with scout_agent.override(model=model):
             async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:

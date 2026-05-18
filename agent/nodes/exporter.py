@@ -20,7 +20,7 @@ async def exporter_node(state: AgentState) -> Dict[str, Any]:
     if not report_text or report_text.startswith("No query") or report_text.startswith("No historical"):
         return {}
 
-    output_dir = "/feeds"
+    output_dir = os.getenv("OUTPUT_FEEDS_DIR", "feeds")
     os.makedirs(output_dir, exist_ok=True)
 
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
