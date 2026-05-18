@@ -1,4 +1,4 @@
-from unittest.mock import AsyncMock, patch
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 from httpx import ASGITransport, AsyncClient
@@ -40,6 +40,18 @@ async def test_scout_endpoint_schema() -> None:
     ]
 
     mock_vectors = [[0.1, 0.2, 0.3]]
+
+    mock_db_result = MagicMock()
+    mock_db_result.scalars.return_value.all.return_value = [
+        MagicMock(title="Historical Insight 1", url="http://example.com/1", source="Archive", snippet="Context 1"),
+        MagicMock(title="Historical Insight 2", url="http://example.com/2", source="Archive", snippet="Context 2"),
+    ]
+
+    mock_session = AsyncMock()
+    mock_session.execute.return_value = mock_db_result
+
+    mock_session_factory = MagicMock()
+    mock_session_factory.return_value.__aenter__ = AsyncMock(return_value=mock_session)
 
     with (
         patch("db.database.async_session"),
