@@ -45,6 +45,7 @@ async def test_scout_endpoint_schema() -> None:
         patch("db.database.async_session"),
         patch("db.database.init_db", new_callable=AsyncMock),
         patch("agent.nodes.archive.async_session"),
+        patch("agent.nodes.retrieval.async_session"),
         patch("agent.nodes.scout.aDDGS.text", new_callable=AsyncMock, return_value=mock_search_results),
         patch("agent.nodes.archive.get_embeddings_batch", new_callable=AsyncMock, return_value=mock_vectors),
         patch("agent.nodes.retrieval.get_embeddings_batch", new_callable=AsyncMock, return_value=mock_vectors),
