@@ -1,30 +1,15 @@
 import os
-from typing import Any, List, Optional
+from typing import Any
 
 import dotenv
 from asyncddgs import aDDGS
-from pydantic import BaseModel, Field
 from pydantic_ai import Agent
 from pydantic_ai.models.mistral import MistralModel
 from pydantic_ai.providers.mistral import MistralProvider
 
-from agent.memory_state import AgentState, ScoutFinding
+from agent.memory_state import AgentState, ResearchResponse
 
 dotenv.load_dotenv()
-
-
-class InitialState(BaseModel):
-    query: str
-    findings: List[ScoutFinding] = Field(default_factory=list)
-    iteration: int = 0
-    critic_feedback: Optional[str] = None
-    final_report: Optional[str] = None
-
-
-class ResearchResponse(BaseModel):
-    """Structured list of findings from the web search."""
-
-    findings: List[ScoutFinding]
 
 
 model = MistralModel(

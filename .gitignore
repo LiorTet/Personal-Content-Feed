@@ -5,6 +5,9 @@ __pycache__/
 .venv/
 *.pyc
 
+# Personal Reports
+feeds/
+
 # C extensions
 *.so
 
