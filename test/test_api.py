@@ -69,12 +69,15 @@ async def test_scout_endpoint_schema() -> None:
 
         with scout_agent.override(model=model):
             async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
-                # 3. Call the endpoint
-                response = await ac.get(
+                # 3. Call the endpoint using POST with a JSON payload
+                response = await ac.post(
                     "/scout",
-                    params={"query": "Latest articles and public interventions by Juan Manuel de Prada May 2026"},
+                    json={
+                        "query": ["Latest articles and public interventions by Juan Manuel de Prada May 2026"],
+                        "findings": [],
+                        "iteration": 0,
+                    },
                 )
-
                 # 4. Assertions
                 assert response.status_code == 200
                 data = response.json()

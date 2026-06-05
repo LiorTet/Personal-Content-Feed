@@ -10,10 +10,16 @@ class ScoutFinding(BaseModel):
     snippet: str
     source: str = "duckduckgo"
     relevance_score: float = 0.0
+    origin_query: str = ""
+
+
+class WorkerState(TypedDict):
+    query: str
+    critic_feedback: Optional[str]
 
 
 class AgentState(TypedDict):
-    query: str
+    query: List[str]
     findings: Annotated[List[ScoutFinding], operator.add]
     critic_feedback: Optional[str]
     iteration: int
@@ -25,7 +31,7 @@ class GraphConfig(BaseModel):
 
 
 class InitialState(BaseModel):
-    query: str
+    query: List[str]
     findings: List[ScoutFinding] = Field(default_factory=list)
     iteration: int = 0
     critic_feedback: Optional[str] = None

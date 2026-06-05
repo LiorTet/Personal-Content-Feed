@@ -37,6 +37,7 @@ async def archive_node(state: AgentState) -> dict[str, Any]:
 
     # Collect all snippets first
     snippets = [f.snippet for f in state["findings"]]
+
     # Get all embeddings in ONE API call
     try:
         vectors = await get_embeddings_batch(snippets)
@@ -50,7 +51,7 @@ async def archive_node(state: AgentState) -> dict[str, Any]:
             stmt = (
                 insert(ContentArchive)
                 .values(
-                    query_context=state["query"],
+                    query_context=finding.origin_query,
                     title=finding.title,
                     url=finding.url,
                     snippet=finding.snippet,
