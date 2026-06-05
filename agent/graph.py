@@ -1,8 +1,8 @@
 import os
 
 from langgraph.checkpoint.memory import MemorySaver
-from langgraph.constants import Send
 from langgraph.graph import END, START, StateGraph
+from langgraph.types import Send
 
 from agent.memory_state import AgentState
 
