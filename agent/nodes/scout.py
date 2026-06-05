@@ -7,7 +7,7 @@ from pydantic_ai import Agent
 from pydantic_ai.models.mistral import MistralModel
 from pydantic_ai.providers.mistral import MistralProvider
 
-from agent.memory_state import AgentState, ResearchResponse
+from agent.memory_state import ResearchResponse, WorkerState
 
 dotenv.load_dotenv()
 
@@ -54,7 +54,7 @@ async def search_web(keywords: str, region: str = "wt-wt", max_results: int = 10
         return "\n\n".join(output) if output else "No results found."
 
 
-async def scout_node(state: AgentState) -> dict[str, Any]:
+async def scout_node(state: WorkerState) -> dict[str, Any]:
     current_query = state["query"]
     if state.get("critic_feedback"):
         current_query += f"\n\nAdditional Instruction from Critic: {state['critic_feedback']}"
