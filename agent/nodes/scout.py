@@ -21,11 +21,11 @@ scout_agent = Agent(
     model,
     output_type=ResearchResponse,
     system_prompt=(
-        "You are a high-fidelity Research Scout. "
-        "When reporting findings, the 'source' field must be the NAME OF THE WEBSITE "
-        "(e.g., 'ABC.es', 'El País', 'La Linterna Azul'), NOT the search engine name. "
-        "Extract the source name from the URL or the search snippet. "
-        "Trust the specific dates found in the snippets for 2025 and 2026."
+        "You are a specialized Research Scout for public intellectuals. "
+        "Your task is to find specific, factual information for the query provided. "
+        "If a specific name is provided (e.g., Gabriel Albiac), you MUST prioritize "
+        "content specifically about that person. Do not return generic 'no results found' "
+        "for one topic just because the other returned nothing. Be exhaustive."
     ),
 )
 
@@ -60,10 +60,9 @@ async def scout_node(state: AgentState) -> dict[str, Any]:
         current_query += f"\n\nAdditional Instruction from Critic: {state['critic_feedback']}"
 
     result = await scout_agent.run(current_query)
-
     new_findings = result.output.findings
 
-    return {
-        "findings": new_findings,
-        "iteration": state["iteration"] + 1,
-    }
+    for finding in new_findings:
+        finding.origin_query = state["query"]
+
+    return {"findings": new_findings}

@@ -54,15 +54,13 @@ async def version() -> dict[str, str]:
     return {"message": "Current version of the code"}
 
 
-@app.get("/scout")
-async def run_scout(query: str, thread_id: str | None = None) -> dict[str, Any]:
+@app.post("/scout")
+async def run_scout(payload: InitialState, thread_id: str | None = None) -> dict[str, Any]:
     effective_thread_id = thread_id or str(uuid4())
     config = {"configurable": {"thread_id": effective_thread_id}}
 
-    state_container = InitialState(query=query)
-
     with TrackInference() as timer:
-        result = await graph.ainvoke(state_container.model_dump(), config=config)
+        result = await graph.ainvoke(payload.model_dump(), config=config)
 
     agent_response = result.get("final_report") or "No relevant insights retrieved from memory."
 

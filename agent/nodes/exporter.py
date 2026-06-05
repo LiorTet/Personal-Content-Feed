@@ -20,11 +20,15 @@ async def exporter_node(state: AgentState) -> Dict[str, Any]:
     if not report_text or report_text.startswith("No query") or report_text.startswith("No historical"):
         return {}
 
-    output_dir = os.getenv("OUTPUT_FEEDS_DIR", "feeds")
+    output_dir = os.getenv("OUTPUT_FEEDS_DIR", "/feeds")
     os.makedirs(output_dir, exist_ok=True)
 
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    safe_query = slugify(query_text)
+    if isinstance(query_text, list):
+        combined_text = "_".join(query_text)
+    else:
+        combined_text = str(query_text)
+    safe_query = slugify(combined_text)
     filename = f"{timestamp}_{safe_query}.md"
     file_path = os.path.join(output_dir, filename)
 
