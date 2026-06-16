@@ -1,9 +1,9 @@
-# 1. Rebuild and restart ONLY the api container
-Write-Host "Rebuilding and updating the API service..." -ForegroundColor Cyan
-docker compose up --build -d api
+# 1. Rebuild and restart services
+Write-Host "Updating services (API and Dashboard)..." -ForegroundColor Cyan
+docker compose up --build -d api dashboard
 
-# 2. Health Check Logic
-Write-Host "Waiting for the new API instance to pass health checks..." -ForegroundColor Yellow
+# 2. Health Check Logic for API
+Write-Host "Waiting for the API to pass health checks..." -ForegroundColor Yellow
 $maxRetries = 12
 $retryCount = 0
 $healthy = $false
@@ -15,7 +15,7 @@ while ($retryCount -lt $maxRetries -and -not $healthy) {
             $healthy = $true
         }
     } catch {
-        # API container is swapping or booting
+        # Container is swapping or booting
     }
 
     if (-not $healthy) {
@@ -26,10 +26,11 @@ while ($retryCount -lt $maxRetries -and -not $healthy) {
 }
 
 if ($healthy) {
-    Write-Host "`n API updated and verified healthy!" -ForegroundColor Green
+    Write-Host "`n Services updated and API verified healthy!" -ForegroundColor Green
+    Write-Host "Dashboard available at: http://localhost:8501" -ForegroundColor Cyan
     Write-Host "------------------------------------------------"
-    docker compose ps api
+    docker compose ps api dashboard
 } else {
-    Write-Host "`n Health check timed out. Pulling recent error traces:" -ForegroundColor Red
+    Write-Host "`n Health check timed out for API. Pulling recent error traces:" -ForegroundColor Red
     docker compose logs api --tail 20
 }

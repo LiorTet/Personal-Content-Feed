@@ -31,6 +31,7 @@ while ($retryCount -lt $maxRetries -and -not $healthy) {
 
 if ($healthy) {
     Write-Host "`nSystem is UP and running!" -ForegroundColor Green
+    Write-Host "Dashboard available at: http://localhost:8501" -ForegroundColor Cyan
     Write-Host "------------------------------------------------"
     docker compose ps
 } else {
